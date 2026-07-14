@@ -32,7 +32,7 @@ This suggests the 2025 cohort recovers CAC faster than the 2024 cohort.
 ```
 fitness-subscription-analytics/
 ├── README.md
-├── report.twbx
+├── subscription_analytics_project.twb
 ├── data/
 │   └── Fitness_Subscriptions_Dataset.xlsx
 └── screenshots/
