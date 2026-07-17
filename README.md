@@ -24,7 +24,6 @@ It includes two worksheets:
 - `customers` – customer signup details, subscription plans, acquisition channels, country, and CAC
 - `transactions` – customer transaction history, transaction dates, and revenue generated
 
-## Key Findings
 
 ## Customer Cohort Analysis
 The cohort analysis shows that customers are most likely to churn between months 2 and 3 after signup. Across cohorts, retention declines gradually during the first two months, then drops more sharply around month 3, suggesting that the highest cancellation risk occurs early in the customer lifecycle.
