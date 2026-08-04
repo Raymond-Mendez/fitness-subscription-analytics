@@ -1,75 +1,149 @@
 # Fitness Subscription Analytics
 
-## Project Overview
-This project analyzes subscription performance for FitnessHub, a subscription-based fitness platform offering workout plans, nutrition coaching, and on-demand classes. The analysis focuses on customer retention, future revenue expectations, and how long it takes customer cohorts to recover acquisition costs through subscription revenue.
+Retention, revenue and payback analysis for **FitnessHub**, a subscription fitness platform selling
+workout plans, nutrition coaching and on-demand classes. Built in Tableau on 9,300 customers and
+64,979 transactions spanning January 2024 to January 2026, with every headline number independently
+recomputed in Python.
 
-## Business Objective
-The goal of this analysis is to help leadership understand whether customer growth is sustainable by answering three key business questions:
+Three questions from leadership:
 
-1. After how many months do customers typically cancel their subscriptions?
-2. What is the expected subscription revenue over the next 12 months?
-3. How long does it take for the 2024 and 2025 customer cohorts to recover customer acquisition cost (CAC)?
+1. After how many months do subscribers typically cancel?
+2. What does the revenue trend look like, and can it be forecast?
+3. How long does each cohort take to earn back its customer acquisition cost?
 
-## Tools Used
-- Tableau
-- Excel
-- Cohort analysis
-- Revenue forecasting
-- CAC vs. LTV analysis
+## Headline numbers
 
-## Dataset
-The project uses one Excel workbook: `Fitness_Subscriptions_Dataset.xlsx`
+| Metric | Value |
+|---|---|
+| Customers | 9,300 |
+| Transactions | 64,979 (Jan 2024 – Jan 2026) |
+| Total revenue | $2,594,959 |
+| Total CAC spend | $1,663,996 |
+| Average CAC | $178.92 (median $163.90) |
+| Median subscriber lifespan | **2 months** |
+| Month-3 retention | **42.0%** |
+| 2024 cohort CAC payback | **month 7** |
+| 2025 cohort CAC payback | **not yet recovered** (see correction below) |
+| Peak revenue month | Dec 2025, $275,624 |
 
-It includes two worksheets:
-- `customers` – customer signup details, subscription plans, acquisition channels, country, and CAC
-- `transactions` – customer transaction history, transaction dates, and revenue generated
+## 1. Retention: the cliff is at month 3
 
+![Subscriber retention by months since signup](screenshots/retention_curve_verified.png)
 
-## Customer Cohort Analysis
-The cohort analysis shows that customers are most likely to churn between months 2 and 3 after signup. Across cohorts, retention declines gradually during the first two months, then drops more sharply around month 3, suggesting that the highest cancellation risk occurs early in the customer lifecycle.
+Retention erodes gently for two months, then falls off a cliff: **71.6% → 42.0% between month 2 and
+month 3**, a 29.5-point single-month drop that is by far the largest in the curve. Median subscriber
+lifespan is just 2 months. After month 3 the decline flattens into a normal slow bleed (27.8% at
+month 6, 12.2% at month 12).
 
-This pattern indicates that FitnessHub may be losing customers shortly after the initial onboarding period. Strengthening customer engagement before month 3 could help reduce early churn and improve retention.
+The shape matters more than the level. A gradual decline would point at product value; a cliff at a
+fixed point in the lifecycle points at a **specific trigger** — most likely the end of an
+introductory period or the third billing event. Whatever survives month 3 tends to stick around,
+which makes months 0–3 the only window where retention spend can move the number.
 
-## Revenue Forecast
-Historical subscription revenue increases steadily throughout 2024 and 2025, reaching a peak around December 2025. The forecast then shows a steep decline into mid-2026, followed by a partial recovery and another downward movement later in the forecast period.
+*Tableau view: `screenshots/cohort_analysis.png`*
 
-This pattern suggests that future revenue may not grow in a straight line and may be influenced by seasonality or recurring demand cycles. FitnessHub should plan for possible revenue slowdowns after peak periods and use these trends to guide budgeting and growth decisions.
+## 2. Revenue: strong growth, and a forecast that should be ignored
 
-## CAC vs. LTV Analysis
-The CAC vs. LTV analysis shows that both the 2024 and 2025 cohorts recover customer acquisition cost around December of their cohort year. In both cases, cumulative revenue rises steadily and eventually crosses the Total CAC reference line near year-end.
+Revenue grew from $528,892 in 2024 to $1,872,453 in 2025 — a 3.5× increase — peaking at $275,624 in
+December 2025. Growth is real and driven by cohort size: the 2025 signup cohort (6,484 customers) is
+more than twice the 2024 cohort (2,816).
 
-- The 2024 cohort reaches CAC break-even around December 2024
-- The 2025 cohort reaches CAC break-even around December 2025
+**The forecast in the Tableau view should not be quoted.** The "steep decline into mid-2026 followed
+by partial recovery" is an artefact of exponential smoothing extrapolating from a December peak with
+only 25 months of history and a final partial period, not a seasonality finding. With two Decembers
+in the data there is no way to separate seasonality from growth. A trustworthy forecast needs at
+least three full seasonal cycles, or a bottom-up model built from cohort size × retention curve ×
+ARPU instead of a curve fitted to a total.
 
-This suggests that FitnessHub currently operates with an approximately one-year CAC payback period. Improving retention or increasing early customer value could shorten this recovery time and improve profitability.
+*Tableau view: `screenshots/revenue_forecast.png`*
 
-## Business Recommendations
-Based on the analysis, the following actions may help improve performance:
+## 3. CAC payback: about 7 months, not 12
 
-- Focus retention efforts during months 2 to 3, when churn risk appears highest
-- Strengthen onboarding and early customer engagement to reduce cancellations before month 3
-- Monitor seasonal revenue patterns and prepare for slower periods after year-end peaks
-- Continue tracking CAC payback by cohort to evaluate whether acquisition spending remains sustainable
+![CAC payback by cohort](screenshots/cac_payback_verified.png)
 
-## Repository Structure
+Measured in **months since signup**, the 2024 cohort recovers its $501,537 acquisition cost at
+**month 7**, reaching $942,512 in cumulative revenue by month 24 — roughly 1.9× CAC. The 2025 cohort
+is tracking ahead of that pace per month but has only 12 months of observed history and sits at
+$1,063,636 against $1,162,459 of CAC, so it has **not** technically crossed break-even yet. That is
+censoring, not underperformance: it is on the same trajectory and should cross shortly after the
+data ends.
+
+### Correction to an earlier version of this analysis
+
+An earlier version of this README reported that **both** cohorts broke even "around December of their
+cohort year," implying a ~12-month payback period. That was wrong, and the coincidence of both
+landing in December was the tell. The Tableau CAC vs LTV sheet plots cumulative revenue against a
+**calendar** axis while comparing it to a full-cohort CAC total, which mixes customers who signed up
+in January with customers who signed up in November and makes the crossing point a function of the
+calendar rather than of the customer lifecycle.
+
+Recomputing on a cohort-relative axis — month 0 = each customer's signup month — gives month 7 for
+2024. [`analysis/verify_metrics.py`](analysis/verify_metrics.py) reproduces this from the source
+workbook and regenerates both corrected charts above. The Tableau sheet is on the list to rebuild.
+
+## Recommendations
+
+1. **Concentrate retention spend in months 0–3.** That single transition holds 30 points of
+   retention. Nothing else in the funnel is worth as much.
+2. **Diagnose the month-3 trigger before designing the fix.** Confirm whether it lines up with a
+   trial expiry, a price step-up or a third charge — the intervention is different in each case.
+3. **Use ~7 months as the payback benchmark**, not 12. It changes how aggressively acquisition can be
+   funded: at 7 months, faster acquisition is affordable.
+4. **Retire the smoothed forecast.** Replace it with a cohort-based projection (cohort size ×
+   retention × ARPU), which is defensible with only two years of history.
+5. **Segment CAC by channel.** Channel-level CAC exists in the data (7 channels, average $178.92) but
+   is not yet cut against retention. Paying above average for a channel that churns at month 3 is the
+   most likely hidden waste.
+
+## Data
+
+`data/Fitness_Subscriptions_Dataset.xlsx` — two worksheets:
+
+| Sheet | Rows | Columns |
+|---|---|---|
+| `customers` | 9,300 | `Customer_ID`, `Subscription_Plan` (Basic/Plus/Premium), `Country` (10), `Acquisition_Channel` (7), `CAC` |
+| `transactions` | 64,979 | `Transaction_ID`, `Customer_ID`, `Transaction_Date`, `Revenue`, `Transaction_Type`, `Product` |
+
+**Data note:** the `customers` sheet contains **no signup date**. Cohorts are therefore derived from
+each customer's first `Subscription` transaction, which is an assumption, not a given field — a
+customer whose first charge failed would be assigned to the wrong cohort. Revenue also spans five
+transaction types (Subscription, Fitness Challenge, Nutrition Plan, Personal Training, Annual
+Upgrade); retention and payback use subscription charges only, while total revenue includes all five.
+
+## Repository structure
+
 ```
 fitness-subscription-analytics/
 ├── README.md
-├── report.twbx
+├── report.twbx                      # Tableau workbook: Customer Cohort, Revenue Forecast, CAC vs LTV
+├── analysis/
+│   └── verify_metrics.py            # Recomputes every number above; regenerates corrected charts
 ├── data/
 │   └── Fitness_Subscriptions_Dataset.xlsx
 └── screenshots/
-    ├── cohort_analysis.png
-    ├── revenue_forecast.png
-    ├── cac_vs_ltv.png
-    └── data_model.png
+    ├── retention_curve_verified.png # Python, cohort-relative (corrected)
+    ├── cac_payback_verified.png     # Python, cohort-relative (corrected)
+    ├── cohort_analysis.png          # Tableau
+    ├── revenue_forecast.png         # Tableau
+    ├── cac_vs_ltv.png               # Tableau (calendar axis - see correction above)
+    └── data_model.png               # Tableau relationship between customers and transactions
 ```
 
-## Tableau Workbook Pages
-The Tableau workbook includes the following report pages:
-- Customer Cohort
-- Revenue Forecast
-- CAC vs LTV
+## Reproducing the numbers
 
-## Conclusion
-This analysis shows that FitnessHub’s biggest retention challenge occurs early in the customer lifecycle, especially between months 2 and 3. Revenue growth has been strong historically, but the forecast suggests possible seasonality and future volatility. Both the 2024 and 2025 cohorts recover CAC by December, which means profitability depends heavily on retaining customers long enough to reach that payback point.
+```bash
+pip install -r requirements.txt
+python analysis/verify_metrics.py
+```
+
+Prints every metric quoted in this README and rewrites the two verified charts.
+
+## Tech stack
+
+Tableau Desktop · Python (pandas, matplotlib, openpyxl) · Excel
+
+**Methods:** cohort retention analysis · revenue trending · CAC payback / LTV analysis
+
+## License
+
+[MIT](LICENSE)
